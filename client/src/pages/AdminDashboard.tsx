@@ -103,7 +103,7 @@ export const AdminDashboard: React.FC = () => {
           </p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
-          <span class="text-xs font-semibold text-blue-500 uppercase">
+          <span className="text-xs font-semibold text-blue-500 uppercase">
             Open
           </span>
           <p className="text-2xl font-bold text-blue-600 mt-1">{stats.open}</p>

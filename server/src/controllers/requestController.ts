@@ -107,7 +107,6 @@ export const updateRequestStatus = async (req: AuthRequest, res: Response) => {
     request.statusHistory.push({
       status,
       changedBy: new mongoose.Types.ObjectId(req.user?.id),
-      comment: `Status changed from ${previousStatus} to ${status}`,
       changedAt: new Date(),
     });
 
