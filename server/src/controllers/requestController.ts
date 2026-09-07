@@ -1,29 +1,31 @@
-import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth';
-import { ServiceRequest } from '../models/ServiceRequest';
-import { User } from '../models/User';
-import mongoose from 'mongoose';
+import { Response } from "express";
+import { AuthRequest } from "../middleware/auth";
+import { ServiceRequest } from "../models/ServiceRequest";
+import { User } from "../models/User";
+import mongoose from "mongoose";
 
 export const createRequest = async (req: AuthRequest, res: Response) => {
   try {
     const { title, description, category, priority } = req.body;
 
     if (!title || !description) {
-      return res.status(400).json({ error: 'Title and description are required' });
+      return res
+        .status(400)
+        .json({ error: "Title and description are required" });
     }
 
     const newRequest = new ServiceRequest({
       title,
       description,
-      category: category || 'Other',
-      priority: priority || 'MEDIUM',
-      status: 'OPEN',
+      category: category || "Other",
+      priority: priority || "MEDIUM",
+      status: "OPEN",
       createdBy: req.user?.id,
       statusHistory: [
         {
-          status: 'OPEN',
+          status: "OPEN",
           changedBy: new mongoose.Types.ObjectId(req.user?.id),
-          comment: 'Request created',
+          comment: "Request created",
         },
       ],
     });
@@ -32,7 +34,7 @@ export const createRequest = async (req: AuthRequest, res: Response) => {
     return res.status(201).json(savedRequest);
   } catch (error) {
     return res.status(500).json({
-      error: 'Failed to create request',
+      error: "Failed to create request",
       details: (error as Error).message,
     });
   }
@@ -41,19 +43,17 @@ export const createRequest = async (req: AuthRequest, res: Response) => {
 export const getRequests = async (req: AuthRequest, res: Response) => {
   try {
     const filter =
-      req.user?.role === 'ADMIN'
-        ? {}
-        : { createdBy: req.user?.id };
+      req.user?.role === "ADMIN" ? {} : { createdBy: req.user?.id };
 
     const requests = await ServiceRequest.find(filter)
-      .populate('createdBy', 'name email')
-      .populate('assignedTo', 'name email')
+      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email")
       .sort({ createdAt: -1 });
 
     return res.status(200).json(requests);
   } catch (error) {
     return res.status(500).json({
-      error: 'Failed to fetch requests',
+      error: "Failed to fetch requests",
     });
   }
 };
@@ -63,25 +63,25 @@ export const getRequestById = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
 
     const filter =
-      req.user?.role === 'ADMIN'
+      req.user?.role === "ADMIN"
         ? { _id: id }
         : { _id: id, createdBy: req.user?.id };
 
     const request = await ServiceRequest.findOne(filter)
-      .populate('createdBy', 'name email')
-      .populate('assignedTo', 'name email')
-      .populate('statusHistory.changedBy', 'name email');
+      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email")
+      .populate("statusHistory.changedBy", "name email");
 
     if (!request) {
       return res.status(404).json({
-        error: 'Request not found',
+        error: "Request not found",
       });
     }
 
     return res.status(200).json(request);
   } catch (error) {
     return res.status(500).json({
-      error: 'Error fetching request details',
+      error: "Error fetching request details",
       details: (error as Error).message,
     });
   }
@@ -96,7 +96,7 @@ export const updateRequestStatus = async (req: AuthRequest, res: Response) => {
 
     if (!request) {
       return res.status(404).json({
-        error: 'Request not found',
+        error: "Request not found",
       });
     }
 
@@ -115,7 +115,7 @@ export const updateRequestStatus = async (req: AuthRequest, res: Response) => {
     return res.status(200).json(request);
   } catch (error) {
     return res.status(500).json({
-      error: 'Failed to update status',
+      error: "Failed to update status",
       details: (error as Error).message,
     });
   }
@@ -128,7 +128,7 @@ export const assignRequest = async (req: AuthRequest, res: Response) => {
 
     if (!assignedTo || !mongoose.Types.ObjectId.isValid(assignedTo)) {
       return res.status(400).json({
-        error: 'A valid assignee is required',
+        error: "A valid assignee is required",
       });
     }
 
@@ -139,7 +139,7 @@ export const assignRequest = async (req: AuthRequest, res: Response) => {
 
     if (!assignee) {
       return res.status(404).json({
-        error: 'Active assignee not found',
+        error: "Active assignee not found",
       });
     }
 
@@ -147,7 +147,7 @@ export const assignRequest = async (req: AuthRequest, res: Response) => {
 
     if (!request) {
       return res.status(404).json({
-        error: 'Request not found',
+        error: "Request not found",
       });
     }
 
@@ -156,16 +156,16 @@ export const assignRequest = async (req: AuthRequest, res: Response) => {
     await request.save();
 
     const updatedRequest = await ServiceRequest.findById(id)
-      .populate('createdBy', 'name email')
-      .populate('assignedTo', 'name email');
+      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email");
 
     return res.status(200).json({
-      message: 'Request assigned successfully',
+      message: "Request assigned successfully",
       request: updatedRequest,
     });
   } catch (error) {
     return res.status(500).json({
-      error: 'Failed to assign request',
+      error: "Failed to assign request",
       details: (error as Error).message,
     });
   }
@@ -182,16 +182,15 @@ export const cancelRequest = async (req: AuthRequest, res: Response) => {
 
     if (!request) {
       return res.status(404).json({
-        error: 'Request not found',
+        error: "Request not found",
       });
     }
 
-    request.status = 'CANCELLED';
+    request.status = "CANCELLED";
 
     request.statusHistory.push({
-      status: 'CANCELLED',
+      status: "CANCELLED",
       changedBy: new mongoose.Types.ObjectId(req.user?.id),
-      comment: 'Cancelled by user',
       changedAt: new Date(),
     });
 
@@ -200,7 +199,7 @@ export const cancelRequest = async (req: AuthRequest, res: Response) => {
     return res.status(200).json(request);
   } catch (error) {
     return res.status(500).json({
-      error: 'Failed to cancel request',
+      error: "Failed to cancel request",
       details: (error as Error).message,
     });
   }
